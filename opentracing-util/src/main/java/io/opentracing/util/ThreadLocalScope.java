@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -28,6 +28,10 @@ public class ThreadLocalScope implements Scope {
     private final Span wrapped;
     private final boolean finishOnClose;
     private final ThreadLocalScope toRestore;
+
+    ThreadLocalScope(ThreadLocalScopeManager scopeManager, Span wrapped) {
+        this(scopeManager, wrapped, false);
+    }
 
     ThreadLocalScope(ThreadLocalScopeManager scopeManager, Span wrapped, boolean finishOnClose) {
         this.scopeManager = scopeManager;

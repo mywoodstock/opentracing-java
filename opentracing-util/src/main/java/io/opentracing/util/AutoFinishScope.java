@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,6 +19,17 @@ import io.opentracing.Span;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * @deprecated use {@link ThreadLocalScope} instead.
+ * The operation mode of this class contrasts with the 0.32
+ * deprecation of auto finishing {@link Span}s upon {@link Scope#close()}.
+
+ * {@link AutoFinishScope} is a {@link Scope} implementation that uses ref-counting
+ * to automatically finish the wrapped {@link Span}.
+ *
+ * @see AutoFinishScopeManager
+ */
+@Deprecated
 public class AutoFinishScope implements Scope {
     final AutoFinishScopeManager manager;
     final AtomicInteger refCount;

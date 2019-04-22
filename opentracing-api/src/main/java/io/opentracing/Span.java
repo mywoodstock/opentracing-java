@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  */
 package io.opentracing;
 
+import io.opentracing.tag.Tag;
 import java.util.Map;
 
 /**
@@ -43,6 +44,9 @@ public interface Span {
 
     /** Same as {@link #setTag(String, String)}, but for numeric values. */
     Span setTag(String key, Number value);
+
+    /** Same as {@link #setTag(String, String)}, but with using Tag<T>. */
+    <T> Span setTag(Tag<T> tag, T value);
 
     /**
      * Log key:value pairs to the Span with the current walltime timestamp.

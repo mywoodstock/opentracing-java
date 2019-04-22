@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -44,6 +44,6 @@ public class ListenerTest {
         List<MockSpan> finished = tracer.finishedSpans();
         assertEquals(1, finished.size());
         assertNotNull(getOneByTag(finished, Tags.SPAN_KIND, Tags.SPAN_KIND_CLIENT));
-        assertNull(tracer.scopeManager().active());
+        assertNull(tracer.scopeManager().activeSpan());
     }
 }

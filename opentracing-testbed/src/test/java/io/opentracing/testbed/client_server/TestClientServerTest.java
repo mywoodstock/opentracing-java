@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -65,6 +65,6 @@ public class TestClientServerTest {
         assertEquals(finished.get(0).context().traceId(), finished.get(1).context().traceId());
         assertNotNull(getOneByTag(finished, Tags.SPAN_KIND, Tags.SPAN_KIND_CLIENT));
         assertNotNull(getOneByTag(finished, Tags.SPAN_KIND, Tags.SPAN_KIND_SERVER));
-        assertNull(tracer.scopeManager().active());
+        assertNull(tracer.scopeManager().activeSpan());
     }
 }

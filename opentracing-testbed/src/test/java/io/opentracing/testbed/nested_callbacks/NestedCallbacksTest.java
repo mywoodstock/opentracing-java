@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -42,9 +42,8 @@ public class NestedCallbacksTest {
     @Test
     public void test() throws Exception {
 
-        try (Scope scope = tracer.buildSpan("one").startActive(false)) {
-            submitCallbacks(scope.span());
-        }
+        Span span = tracer.buildSpan("one").start();
+        submitCallbacks(span);
 
         await().atMost(15, TimeUnit.SECONDS).until(finishedSpansSize(tracer), equalTo(1));
 
@@ -58,7 +57,7 @@ public class NestedCallbacksTest {
             assertEquals(Integer.toString(i), tags.get("key" + i));
         }
 
-        assertNull(tracer.scopeManager().active());
+        assertNull(tracer.scopeManager().activeSpan());
     }
 
     private void submitCallbacks(final Span span) {
@@ -66,20 +65,22 @@ public class NestedCallbacksTest {
         executor.submit(new Runnable() {
             @Override
             public void run() {
-                try (Scope scope = tracer.scopeManager().activate(span, false)) {
+                try (Scope scope = tracer.scopeManager().activate(span)) {
                     span.setTag("key1", "1");
 
                     executor.submit(new Runnable() {
                         @Override
                         public void run() {
-                            try (Scope scope = tracer.scopeManager().activate(span, false)) {
+                            try (Scope scope = tracer.scopeManager().activate(span)) {
                                 span.setTag("key2", "2");
 
                                 executor.submit(new Runnable() {
                                     @Override
                                     public void run() {
-                                        try (Scope scope = tracer.scopeManager().activate(span, true)) {
+                                        try (Scope scope = tracer.scopeManager().activate(span)) {
                                             span.setTag("key3", "3");
+                                        } finally {
+                                            span.finish();
                                         }
                                     }
                                 });

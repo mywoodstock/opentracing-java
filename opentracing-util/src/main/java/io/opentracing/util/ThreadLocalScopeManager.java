@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -31,7 +31,18 @@ public class ThreadLocalScopeManager implements ScopeManager {
     }
 
     @Override
+    public Scope activate(Span span) {
+        return new ThreadLocalScope(this, span);
+    }
+
+    @Override
     public Scope active() {
         return tlsScope.get();
+    }
+
+    @Override
+    public Span activeSpan() {
+        Scope scope = tlsScope.get();
+        return scope == null ? null : scope.span();
     }
 }

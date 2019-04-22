@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,9 +14,11 @@
 package io.opentracing.testbed.multiple_callbacks;
 
 import io.opentracing.Scope;
+import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.util.AutoFinishScope;
 import io.opentracing.util.AutoFinishScope.Continuation;
+import io.opentracing.util.AutoFinishScopeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +41,7 @@ public class Client {
     }
 
     public Future<Object> send(final Object message, final long milliseconds) {
-        Scope scope = tracer.scopeManager().active();
-        final Continuation cont = ((AutoFinishScope)scope).capture();
+        final Continuation cont = ((AutoFinishScopeManager)tracer.scopeManager()).captureScope();
 
         return executor.submit(new Callable<Object>() {
             @Override
@@ -48,7 +49,9 @@ public class Client {
                 logger.info("Child thread with message '{}' started", message);
 
                 try (Scope parentScope = cont.activate()) {
-                    try (Scope subtaskScope = tracer.buildSpan("subtask").startActive(false)) {
+
+                    Span span = tracer.buildSpan("subtask").start();
+                    try (Scope subtaskScope = tracer.activateSpan(span)) {
                         // Simulate work.
                         sleep(milliseconds);
                     }

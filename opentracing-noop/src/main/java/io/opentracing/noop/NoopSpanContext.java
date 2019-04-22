@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -24,6 +24,16 @@ public interface NoopSpanContext extends SpanContext {
 
 final class NoopSpanContextImpl implements NoopSpanContext {
     static final NoopSpanContextImpl INSTANCE = new NoopSpanContextImpl();
+
+    @Override
+    public String toTraceId() {
+        return "";
+    }
+
+    @Override
+    public String toSpanId() {
+        return "";
+    }
 
     @Override
     public Iterable<Map.Entry<String, String>> baggageItems() {

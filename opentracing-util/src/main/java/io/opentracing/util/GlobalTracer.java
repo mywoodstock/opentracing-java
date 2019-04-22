@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  */
 package io.opentracing.util;
 
+import io.opentracing.Scope;
 import io.opentracing.ScopeManager;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
@@ -25,12 +26,12 @@ import java.util.concurrent.Callable;
 
 /**
  * Global tracer that forwards all methods to another tracer that can be
- * configured by calling {@link #register(Tracer)}.
+ * configured by calling {@link #registerIfAbsent(Tracer) register}.
  *
  * <p>
- * The {@linkplain #register(Tracer) register} method should only be called once
+ * The {@linkplain #registerIfAbsent(Tracer) register} method should only be called once
  * during the application initialization phase.<br>
- * If the {@linkplain #register(Tracer) register} method is never called,
+ * If the {@linkplain #registerIfAbsent(Tracer)} register} method is never called,
  * the default {@link NoopTracer} is used.
  *
  * <p>
@@ -65,6 +66,8 @@ public final class GlobalTracer implements Tracer {
      */
     private static volatile Tracer tracer = NoopTracerFactory.create();
 
+    private static volatile boolean isRegistered = false;
+
     private GlobalTracer() {
     }
 
@@ -72,11 +75,11 @@ public final class GlobalTracer implements Tracer {
      * Returns the constant {@linkplain GlobalTracer}.
      * <p>
      * All methods are forwarded to the currently configured tracer.<br>
-     * Until a tracer is {@link #register(Tracer) explicitly configured},
+     * Until a tracer is {@link #registerIfAbsent(Tracer) explicitly configured},
      * the {@link io.opentracing.noop.NoopTracer NoopTracer} is used.
      *
      * @return The global tracer constant.
-     * @see #register(Tracer)
+     * @see #registerIfAbsent(Tracer) and {@link #registerIfAbsent(Callable)}
      */
     public static Tracer get() {
         return INSTANCE;
@@ -92,12 +95,10 @@ public final class GlobalTracer implements Tracer {
      *
      * @return Whether a tracer has been registered
      */
-    public static synchronized boolean isRegistered() {
-        return !(GlobalTracer.tracer instanceof NoopTracer);
-    }
+    public static boolean isRegistered() { return isRegistered; }
 
     /**
-     * Register a {@link Tracer} to back the behaviour of the {@link #get() global tracer}.
+     * Register a {@link Tracer} to back the behaviour of the {@link #get()}.
      * <p>
      * The tracer is provided through a {@linkplain Callable} that will only be called if the global tracer is absent.
      * Registration is a one-time operation. Once a tracer has been registered, all attempts at re-registering
@@ -120,6 +121,7 @@ public final class GlobalTracer implements Tracer {
                 final Tracer suppliedTracer = requireNonNull(provider.call(), "Cannot register GlobalTracer <null>.");
                 if (!(suppliedTracer instanceof GlobalTracer)) {
                     GlobalTracer.tracer = suppliedTracer;
+                    isRegistered = true;
                     return true;
                 }
             } catch (RuntimeException rte) {
@@ -129,6 +131,35 @@ public final class GlobalTracer implements Tracer {
             }
         }
         return false;
+    }
+
+    /**
+     * Register a {@link Tracer} to back the behaviour of the {@link #get()}.
+     * <p>
+     * Registration is a one-time operation. Once a tracer has been registered, all attempts at re-registering
+     * will return {@code false}. Use {@link #registerIfAbsent(Callable)} for lazy initiation to avoid multiple
+     * instantiations of tracer.
+     * <p>
+     * Every application intending to use the global tracer is responsible for registering it once
+     * during its initialization.
+     *
+     * @param tracer tracer to be registered.
+     * @return {@code true} if the provided tracer was registered as a result of this call,
+     * {@code false} otherwise.
+     * @throws NullPointerException  if the tracer {@code null}.
+     * @throws RuntimeException      any exception thrown by the provider gets rethrown,
+     *                               checked exceptions will be wrapped into appropriate runtime exceptions.
+     *
+     * @see #registerIfAbsent(Callable)
+     */
+    public static synchronized boolean registerIfAbsent(final Tracer tracer) {
+        requireNonNull(tracer, "Cannot register GlobalTracer. Tracer is null");
+        return registerIfAbsent(new Callable<Tracer>() {
+            @Override
+            public Tracer call() {
+                return tracer;
+            }
+        });
     }
 
     /**
@@ -142,7 +173,7 @@ public final class GlobalTracer implements Tracer {
      * @param tracer Tracer to use as global tracer.
      * @throws RuntimeException if there is already a current tracer registered
      * @see #registerIfAbsent(Callable)
-     * @deprecated Please use 'registerIfAbsent' instead which does not attempt a double registration.
+     * @deprecated Please use {@link #registerIfAbsent(Tracer)} or {@link #registerIfAbsent(Callable)} instead.
      */
     @Deprecated
     public static void register(final Tracer tracer) {
@@ -176,6 +207,16 @@ public final class GlobalTracer implements Tracer {
     @Override
     public Span activeSpan() {
         return tracer.activeSpan();
+    }
+
+    @Override
+    public Scope activateSpan(Span span) {
+        return tracer.activateSpan(span);
+    }
+
+    @Override
+    public void close() {
+        tracer.close();
     }
 
     @Override

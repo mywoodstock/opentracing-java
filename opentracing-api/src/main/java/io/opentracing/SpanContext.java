@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -26,6 +26,30 @@ import java.util.Map;
  * @see Span#getBaggageItem(String)
  */
 public interface SpanContext {
+    /**
+     * Return the ID of the trace.
+     *
+     * Should be globally unique. Every span in a trace shares this ID.
+     *
+     * An empty String will be returned if the tracer does not support this functionality
+     * (this is the case for no-op tracers, for example). null is an invalid return value.
+     *
+     * @return the trace ID for this context.
+     */
+    String toTraceId();
+
+    /**
+     * Return the ID of the associated Span.
+     *
+     * Should be unique within a trace. Each span within a trace contains a different ID.
+     *
+     * An empty String will be returned if the tracer does not support this functionality
+     * (this is the case for no-op tracers, for example). null is an invalid return value.
+     *
+     * @return the Span ID for this context.
+     */
+    String toSpanId();
+
     /**
      * @return all zero or more baggage items propagating along with the associated Span
      *

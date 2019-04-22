@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -27,11 +27,15 @@ public class BuiltinFormatTest {
     @Test
     public void test_TEXT_MAP_toString() {
         assertEquals("Builtin.TEXT_MAP", Format.Builtin.TEXT_MAP.toString());
+        assertEquals("Builtin.TEXT_MAP_INJECT", Format.Builtin.TEXT_MAP_INJECT.toString());
+        assertEquals("Builtin.TEXT_MAP_EXTRACT", Format.Builtin.TEXT_MAP_EXTRACT.toString());
     }
 
     @Test
     public void test_BINARY_toString() {
         assertEquals("Builtin.BINARY", Format.Builtin.BINARY.toString());
+        assertEquals("Builtin.BINARY_INJECT", Format.Builtin.BINARY_INJECT.toString());
+        assertEquals("Builtin.BINARY_EXTRACT", Format.Builtin.BINARY_EXTRACT.toString());
     }
 
 }

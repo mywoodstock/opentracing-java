@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -26,8 +26,8 @@ import java.util.Map;
  *
  * @see Tracer#extract(Format, Object)
  */
-public final class TextMapExtractAdapter implements TextMap {
-    private final Map<String,String> map;
+public class TextMapExtractAdapter implements TextMapExtract {
+    protected final Map<String,String> map;
 
     public TextMapExtractAdapter(final Map<String,String> map) {
         this.map = map;
@@ -36,10 +36,5 @@ public final class TextMapExtractAdapter implements TextMap {
     @Override
     public Iterator<Map.Entry<String, String>> iterator() {
         return map.entrySet().iterator();
-    }
-
-    @Override
-    public void put(String key, String value) {
-        throw new UnsupportedOperationException("TextMapExtractAdapter should only be used with Tracer.extract()");
     }
 }

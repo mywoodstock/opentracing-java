@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,6 +15,7 @@ package io.opentracing.noop;
 
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
+import io.opentracing.tag.Tag;
 
 import java.util.Map;
 
@@ -41,6 +42,9 @@ final class NoopSpanImpl implements NoopSpan {
 
     @Override
     public NoopSpan setTag(String key, Number value) { return this; }
+
+    @Override
+    public <T> NoopSpan setTag(Tag<T> tag, T value) { return this; }
 
     @Override
     public NoopSpan log(Map<String, ?> fields) { return this; }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -27,16 +27,11 @@ import java.util.Map;
  *
  * @see Tracer#inject(SpanContext, Format, Object)
  */
-public final class TextMapInjectAdapter implements TextMap {
-    private final Map<String,String> map;
+public class TextMapInjectAdapter implements TextMapInject {
+    protected final Map<String, ? super String> map;
 
-    public TextMapInjectAdapter(final Map<String,String> map) {
+    public TextMapInjectAdapter(final Map<String, ? super String> map) {
         this.map = map;
-    }
-
-    @Override
-    public Iterator<Map.Entry<String, String>> iterator() {
-        throw new UnsupportedOperationException("TextMapInjectAdapter should only be used with Tracer.inject()");
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,6 +15,7 @@ package io.opentracing.testbed.promise_propagation;
 
 import io.opentracing.References;
 import io.opentracing.Scope;
+import io.opentracing.Span;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
 import java.util.Collection;
@@ -24,7 +25,7 @@ import java.util.LinkedList;
 public class Promise<T> {
   private final PromiseContext context;
   private final MockTracer tracer;
-  private final Scope parentScope;
+  private final Span parentSpan;
 
   private final Collection<SuccessCallback<T>> successCallbacks = new LinkedList<>();
   private final Collection<ErrorCallback> errorCallbacks = new LinkedList<>();
@@ -34,7 +35,7 @@ public class Promise<T> {
 
     // Passed along here for testing. Normally should be referenced via GlobalTracer.get().
     this.tracer = tracer;
-    parentScope = tracer.scopeManager().active();
+    parentSpan = tracer.scopeManager().activeSpan();
   }
 
   public void onSuccess(SuccessCallback<T> successCallback) {
@@ -51,14 +52,16 @@ public class Promise<T> {
           new Runnable() {
             @Override
             public void run() {
-                try (Scope child =
-                    tracer
-                        .buildSpan("success")
-                            .addReference(References.FOLLOWS_FROM, parentScope.span().context())
-                        .withTag(Tags.COMPONENT.getKey(), "success")
-                        .startActive(true)) {
-                  callback.accept(result);
-                }
+              Span childSpan = tracer
+                  .buildSpan("success")
+                  .addReference(References.FOLLOWS_FROM, parentSpan.context())
+                  .withTag(Tags.COMPONENT.getKey(), "success")
+                  .start();
+              try (Scope childScope = tracer.activateSpan(childSpan)) {
+                callback.accept(result);
+              } finally {
+                childSpan.finish();
+              }
               context.getPhaser().arriveAndAwaitAdvance(); // trace reported
             }
           });
@@ -71,15 +74,17 @@ public class Promise<T> {
           new Runnable() {
             @Override
             public void run() {
-                try (Scope child =
-                    tracer
-                        .buildSpan("error")
-                            .addReference(References.FOLLOWS_FROM, parentScope.span().context())
-                        .withTag(Tags.COMPONENT.getKey(), "error")
-                        .startActive(true)) {
+                Span childSpan = tracer
+                    .buildSpan("error")
+                    .addReference(References.FOLLOWS_FROM, parentSpan.context())
+                    .withTag(Tags.COMPONENT.getKey(), "error")
+                    .start();
+                try (Scope childScope = tracer.activateSpan(childSpan)) {
                   callback.accept(error);
+                } finally {
+                    childSpan.finish();
                 }
-              context.getPhaser().arriveAndAwaitAdvance(); // trace reported
+                context.getPhaser().arriveAndAwaitAdvance(); // trace reported
             }
           });
     }

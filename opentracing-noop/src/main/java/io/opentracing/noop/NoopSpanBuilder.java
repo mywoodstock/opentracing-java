@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 The OpenTracing Authors
+ * Copyright 2016-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -17,9 +17,7 @@ import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
-
-import java.util.Collections;
-import java.util.Map;
+import io.opentracing.tag.Tag;
 
 public interface NoopSpanBuilder extends Tracer.SpanBuilder {
     NoopSpanBuilder INSTANCE = new NoopSpanBuilderImpl();
@@ -57,6 +55,11 @@ final class NoopSpanBuilderImpl implements NoopSpanBuilder {
 
     @Override
     public Tracer.SpanBuilder withTag(String key, Number value) {
+        return this;
+    }
+
+    @Override
+    public <T> Tracer.SpanBuilder withTag(Tag<T> key, T value) {
         return this;
     }
 
